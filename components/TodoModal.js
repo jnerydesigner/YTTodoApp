@@ -1,7 +1,19 @@
 import React from 'react';
-import {Keyboard, TextInput, KeyboardAvoidingView, View, FlatList, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import {
+    Keyboard,
+    TextInput,
+    KeyboardAvoidingView,
+    View,
+    FlatList,
+    Text,
+    StyleSheet,
+    SafeAreaView,
+    TouchableOpacity,
+    Animated
+} from 'react-native';
+import { AntDesign, Ionicons, FontAwesome } from '@expo/vector-icons';
 import colors from '../Colors';
+import Swipeable from 'react-native-gesture-handler/Swipeable';
 
 
 
@@ -21,38 +33,74 @@ export default class TodoModal extends React.Component {
 
     addTodo = () => {
         let list = this.props.list;
-        list.todos.push({title: this.state.newTodo, completed: false });
 
-        this.props.updateList(list);
-        this.setState({ newTodo: ""});
+        if(!list.todos.some( todo => todo.title === this.state.newTodo)){
+            list.todos.push({ title: this.state.newTodo, completed: false });
 
+            this.props.updateList(list);
+        }
+        
+
+        
+        this.setState({ newTodo: "" });
         Keyboard.dismiss();
     };
+
+    deleteTodo = index => {
+        let list = this.props.list;
+
+        list.todos.splice(index,1);
+
+        this.props.updateList(list);
+    }
 
 
     renderTodo = (todo, index) => {
         return (
-            <View style={styles.todoContainer}>
-                <TouchableOpacity onPress={ () => this.toggleTodoCompleted(index)}>
-                    <Ionicons
-                        name={todo.completed ? "ios-square" : "ios-square-outline"}
-                        size={24}
-                        color={colors.gray}
-                        style={{ width: 32 }}
-                    />
+            <Swipeable renderRightActions={(_, dragX) => this.rightActions(dragX, index)}>
+                <View style={styles.todoContainer}>
+                    <TouchableOpacity onPress={() => this.toggleTodoCompleted(index)}>
+                        <Ionicons
+                            name={todo.completed ? "ios-square" : "ios-square-outline"}
+                            size={24}
+                            color={colors.gray}
+                            style={{ width: 32 }}
+                        />
 
-                </TouchableOpacity>
-                <Text
-                    style={[styles.titleTasks,
-                    {
-                        textDecorationLine: todo.completed ? 'line-through' : 'none',
-                        color: todo.completed ? colors.blue : colors.red
-                    }]}>{todo.title}</Text>
+                    </TouchableOpacity>
+                    <Text
+                        style={[styles.titleTasks,
+                        {
+                            textDecorationLine: todo.completed ? 'line-through' : 'none',
+                            color: todo.completed ? colors.blue : colors.red
+                        }]}>{todo.title}</Text>
 
 
-            </View>
+                </View>
+                <TouchableOpacity onPress={() => this.deleteTodo(index)}>
+                        <FontAwesome
+                            name="trash"
+                            size={24}
+                            color={colors.gray}
+                            style={{ width: 32 }}
+                        />
+
+                    </TouchableOpacity>
+            </Swipeable>
         );
     };
+
+    rightActions = (dragX, index) => {
+        return (
+            <TouchableOpacity>
+                <Animated.View>
+                    <Animated.Text>
+                        Delete
+                    </Animated.Text>
+                </Animated.View>
+            </TouchableOpacity>
+        );
+    }
 
     render() {
         const list = this.props.list;
@@ -84,7 +132,7 @@ export default class TodoModal extends React.Component {
                         <FlatList
                             data={list.todos}
                             renderItem={({ item, index }) => this.renderTodo(item, index)}
-                            keyExtractor={(_, index) => index.toString()}
+                            keyExtractor={ item  => item.title }
                             contentContainerStyle={{ paddingHorizontal: 32, paddingVertical: 64 }} />
                     </View>
 
@@ -95,7 +143,7 @@ export default class TodoModal extends React.Component {
                     >
                         <TextInput
                             placeholder="Digite a Tarefa"
-                            onChangeText={ text => this.setState({ newTodo: text })}
+                            onChangeText={text => this.setState({ newTodo: text })}
                             value={this.state.newTodo}
                             style={[styles.input, { borderColor: list.color }]} />
                         <TouchableOpacity

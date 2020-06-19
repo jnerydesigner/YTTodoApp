@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, StyleSheet, TextInput, KeyboardAvoidingView, TouchableOpacity } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import colors from '../Colors';
-import tempData from '../TempData';
 
 
 
